@@ -1,0 +1,20 @@
+{
+  "name": "tiptap-paginanation-plugin",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tiptap/core": "^3.0.9",
+    "@tiptap/extension-collaboration": "^3.0.9",
+    "@tiptap/extension-unique-id": "^3.0.9",
+    "@tiptap/pm": "^3.0.9",
+    "@tiptap/react": "^3.0.9",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "zeed-dom": "^0.17.7"
+  }
+}
