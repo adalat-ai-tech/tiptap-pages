@@ -36,7 +36,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/adalat-ai/page-extension.git"
+    "url": "https://github.com/adalat-ai-tech/tiptap-pages.git"
   },
   "peerDependencies": {
     "@tiptap/core": "^2.0.0",
