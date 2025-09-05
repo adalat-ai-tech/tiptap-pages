@@ -15,7 +15,6 @@
     "isolatedModules": true,
     "noEmit": false,
     "jsx": "react-jsx",
-    "isolatedModules": true,
     "allowSyntheticDefaultImports": true
   },
   "include": [

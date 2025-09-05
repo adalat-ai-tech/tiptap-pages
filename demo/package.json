@@ -5,9 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "pnpm exec playwright test --timeout=60000",
+    "show-report": "pnpm exec playwright show-report",
+    "codegen": "pnpm exec playwright codegen"
   },
   "dependencies": {
     "@tiptap/core": "^2.26.1",
@@ -32,6 +35,8 @@
     "lucide-react": "^0.542.0",
     "mitt": "^3.0.1",
     "nanoid": "^5.1.5",
+    "prettier": "^3.6.2",
+    "prismjs": "^1.30.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "tailwind-merge": "^3.3.1",
@@ -40,6 +45,9 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^24.3.1",
+    "@types/prismjs": "^1.26.5",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^5.0.0",

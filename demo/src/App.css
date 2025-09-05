@@ -94,7 +94,7 @@ body {
   flex: 1;
   overflow: scroll;
   background: #f8f9fa;
-  padding: 10px; /* Reduced from 20px to 10px */
+
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -108,7 +108,7 @@ body {
   outline: none;
   height: 100%;
   overflow-y: auto;
-  padding: 10px; /* Reduced from 20px to 10px */
+
   background: transparent;
 }
 
@@ -215,3 +215,26 @@ body {
   background: #a8a8a8;
 }
 
+
+.state-container{
+  display: flex;
+  gap: 4px; 
+  padding: 20px;
+  background: #f8f9fa;
+}
+
+.code-container{
+  width: 40vw;
+  background-color: #000000;
+  color: white;
+  padding: 20px;
+  border-radius: 20px;
+  overflow: auto;
+  max-height: 80vh;
+  position: sticky;
+  top: 5vh;
+
+  code{
+    word-wrap: break-word;
+  }
+}
