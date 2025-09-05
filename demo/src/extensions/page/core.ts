@@ -6,13 +6,17 @@ import { createHTMLDocument, type VHTMLDocument } from 'zeed-dom';
 import { type SplitContext } from './computed';
 import { type PageOptions } from './types';
 
-import { getId } from './utils/node';
+import { getId } from '../utils/node';
 
- 
+/**
+ * Calculate the available body height based on page options and settings
+ * @param options - Page configuration options
+ * @returns Available height for content in pixels
+ */
 export const getBodyHeight = (options: PageOptions): number => {
   const { pageLayout, pageNumber } = options;
   
-
+  // Calculate header and footer heights based on page number settings
   const headerHeight = pageNumber?.show && pageNumber?.position === 'top' 
     ? (options.headerHeight ?? 30)
     : 0;
@@ -21,34 +25,44 @@ export const getBodyHeight = (options: PageOptions): number => {
     ? (options.footerHeight ?? 30)
     : 0;
   
-
+  // Calculate margins (convert inches to pixels: 1 inch = 96 pixels)
   const marginHeight = pageLayout?.margins 
     ? (pageLayout.margins.top.value + pageLayout.margins.bottom.value) * 96
-    : 96; 
+    : 96; // Default 1 inch margins
   
   return options.bodyHeight - marginHeight - (headerHeight + footerHeight);
 };
 
-
+/**
+ * Calculate the available body width based on page options and settings
+ * @param options - Page configuration options
+ * @returns Available width for content in pixels
+ */
 export const getBodyWidth = (options: PageOptions): number => {
   const { pageLayout } = options;
   
-
+  // Calculate margins (convert inches to pixels: 1 inch = 96 pixels)
   const marginWidth = pageLayout?.margins 
     ? (pageLayout.margins.left.value + pageLayout.margins.right.value) * 96
-    : 96; 
+    : 96; // Default 1 inch margins
   
   return options.bodyWidth - marginWidth;
 };
 
-
+/**
+ * Generate HTML from schema document
+ * @param doc - The document node
+ * @param schema - The schema to use
+ * @param options - Optional parameters including custom document
+ * @returns HTML string representation
+ */
 export function getHTMLFromFragment(
   doc: Node, 
   schema: Schema, 
   options?: { document?: Document }
 ): string {
   if (options?.document) {
-
+    // Use caller's document implementation
     const wrap = options.document.createElement('div');
     DOMSerializer.fromSchema(schema).serializeFragment(
       doc.content, 
@@ -58,7 +72,7 @@ export function getHTMLFromFragment(
     return wrap.innerHTML;
   }
 
-
+  // Use zeed-dom for serialization
   const zeedDocument = DOMSerializer.fromSchema(schema).serializeFragment(
     doc.content, 
     { document: createHTMLDocument() as unknown as Document }
@@ -67,7 +81,12 @@ export function getHTMLFromFragment(
   return zeedDocument.render();
 }
 
-
+/**
+ * Calculate if the last line is filled in a paragraph
+ * @param cnode - The paragraph node to check
+ * @param schema - The document schema
+ * @returns True if line is filled, false if not, null if cannot determine
+ */
 export function getFlag(cnode: Node, schema: Schema): boolean | null {
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
   const paragraphDOM = document.querySelector("[data-id='" + cnode.attrs.id + "']") || 
@@ -79,14 +98,14 @@ export function getFlag(cnode: Node, schema: Schema): boolean | null {
   const html = generateHTML(getJsonFromDoc(cnode), schema);
   const { width: wordWidth } = computedWidth(html, false);
   
-
+  // If the line is not filled, it should be merged
   if (width >= wordWidth) {
     return false;
   }
   
   let strLength = 0;
   cnode.descendants((node: Node) => {
-
+    // TODO: Text calculation is low performance, need to use binary search to improve performance
     if (node.isText) {
       const nodeText = node.text;
       if (nodeText) {
@@ -114,7 +133,12 @@ export function getFlag(cnode: Node, schema: Schema): boolean | null {
   return Math.abs(strLength - width) < fontSize;
 }
 
-
+/**
+ * Generates an HTML string from a given JSON content and schema
+ * @param doc - The JSON content to be converted to HTML
+ * @param schema - The schema used to interpret the JSON content
+ * @returns The generated HTML string
+ */
 const htmlCache = new Map<string, string>();
 
 export function generateHTML(doc: JSONContent, schema: Schema): string {
@@ -131,7 +155,13 @@ export function generateHTML(doc: JSONContent, schema: Schema): string {
   return html;
 }
 
-
+/**
+ * Creates a new node with the given content and calculates its height
+ * @param node - The original node to be used as a template
+ * @param content - An array of nodes to be used as the content of the new node
+ * @param splitContext - The context containing the schema used for generating HTML
+ * @returns The calculated height of the generated HTML node
+ */
 function createAndCalculateHeight(node: Node, content: Node[], splitContext: SplitContext): number {
   const calculateNode = node.type.create(node.attrs, content, node.marks);
   const htmlNode = generateHTML(getJsonFromDoc(calculateNode), splitContext.schema);
@@ -140,8 +170,15 @@ function createAndCalculateHeight(node: Node, content: Node[], splitContext: Spl
   return htmlNodeHeight;
 }
 
-
+/**
+ * Calculates the overflow height and point of a given node within a DOM element
+ * @param node - The node to calculate overflow for
+ * @param dom - The DOM element containing the node
+ * @param splitContext - The context used for splitting nodes
+ * @returns The index at which the node overflows
+ */
 function calculateNodeOverflowHeightAndPoint(node: Node, dom: HTMLElement, splitContext: SplitContext): number {
+  // Get the current available height
   let height = splitContext.getAccumulatedHeight() === 0 
     ? splitContext.getHeight() 
     : splitContext.getHeight() - splitContext.getAccumulatedHeight();
@@ -152,16 +189,21 @@ function calculateNodeOverflowHeightAndPoint(node: Node, dom: HTMLElement, split
     height -= parseFloat(window.getComputedStyle(dom).getPropertyValue('margin-top'));
   }
   
+  // Get the last child node
   let lastChild = node.lastChild;
   const childCount = node.childCount;
   
+  // The final calculated point
   let point: { i?: number; calculateLength?: number } = {};
   
+  // Get all the nodes and traverse them in reverse order
   const content: Node[] = [...(node.content?.content ?? [])];
   
+  // Traverse the content in reverse order
   for (let i = childCount - 1; i >= 0; i--) {
     lastChild = content[i]!;
     
+    // If this is a text node, apply binary search
     if (lastChild?.isText) {
       const text = lastChild.text ?? '';
       const breakIndex = binarySearchTextBreak(
@@ -174,6 +216,7 @@ function calculateNodeOverflowHeightAndPoint(node: Node, dom: HTMLElement, split
         lastChild.marks
       );
 
+      // If breakIndex > 0, we found a valid break
       if (breakIndex > 0) {
         const partialText = text.slice(0, breakIndex);
         const htmlNodeHeight = createAndCalculateHeight(
@@ -219,7 +262,18 @@ function calculateNodeOverflowHeightAndPoint(node: Node, dom: HTMLElement, split
   return index;
 }
 
-
+/**
+ * Uses binary search to find the largest text slice that fits in heightLimit
+ * Preserves word boundaries by trimming to the last space within the candidate
+ * @param fullText - The full text to search through
+ * @param node - The node containing the text
+ * @param indexInContent - Index of the text node in content array
+ * @param content - Array of content nodes
+ * @param heightLimit - Maximum height limit
+ * @param splitContext - Split context for calculations
+ * @param marks - Text marks to apply
+ * @returns The index where text should break
+ */
 function binarySearchTextBreak(
   fullText: string,
   node: Node,
@@ -236,6 +290,7 @@ function binarySearchTextBreak(
   while (low <= high) {
     const mid = Math.floor((low + high) / 2);
     
+    // Slice to mid and trim back to the last space
     let candidate = fullText.slice(0, mid);
     let lastSpaceIndex = candidate.lastIndexOf(' ');
     
@@ -249,8 +304,10 @@ function binarySearchTextBreak(
     
     candidate = candidate.slice(0, lastSpaceIndex);
 
+    // Prevent empty text nodes
     if (candidate.length === 0) {
       if (mid > 1) {
+        // Try using the first character instead
         candidate = fullText.slice(0, 1);
       } else {
         return 0;
@@ -265,17 +322,25 @@ function binarySearchTextBreak(
     
     if (candidateHeight <= heightLimit) {
       validBreak = lastSpaceIndex > 0 ? lastSpaceIndex : candidate.length;
-      low = mid + 1; 
+      low = mid + 1; // Try bigger
     } else {
-      high = mid - 1; 
+      high = mid - 1; // Too large
     }
   }
 
   return validBreak;
 }
 
-
-
+/**
+ * Get the last break position in a paragraph that needs pagination
+ * If the width of inline Chinese and English characters exceeds the paragraph width, 
+ * calculate the break position. If not exceeded, return null directly.
+ * Since there may be images inline, images do not need to be calculated.
+ * @param cnode - The node representing the paragraph
+ * @param dom - The DOM element of the paragraph
+ * @param splitContext - The context containing the schema used for generating HTML
+ * @returns The break position index or null if no break needed
+ */
 export function getBreakPos(cnode: Node, dom: HTMLElement, splitContext: SplitContext): number | null {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -286,7 +351,9 @@ export function getBreakPos(cnode: Node, dom: HTMLElement, splitContext: SplitCo
   const width = paragraphDOM.offsetWidth;
   const html = generateHTML(getJsonFromDoc(cnode), splitContext.schema);
   const { width: wordWidth } = computedWidth(html, false);
-
+  
+  // If the height exceeds the default but the width does not, 
+  // it means there is only one line with inline elements like images
   if (width >= wordWidth) {
     return null;
   }
@@ -295,7 +362,11 @@ export function getBreakPos(cnode: Node, dom: HTMLElement, splitContext: SplitCo
   return index || null;
 }
 
-
+/**
+ * Utility function to get JSON from a document node
+ * @param node - The document node
+ * @returns JSON representation with doc wrapper
+ */
 export function getJsonFromDoc(node: Node): JSONContent {
   return {
     type: 'doc',
@@ -303,7 +374,11 @@ export function getJsonFromDoc(node: Node): JSONContent {
   };
 }
 
-
+/**
+ * Utility function to get JSON from JSON content
+ * @param json - The JSON content
+ * @returns JSON representation with doc wrapper
+ */
 export function getJsonFromDocForJson(json: JSONContent): JSONContent {
   return {
     type: 'doc',
@@ -311,11 +386,15 @@ export function getJsonFromDocForJson(json: JSONContent): JSONContent {
   };
 }
 
-
+// Global iframe references for HTML calculations
 let iframeComputed: HTMLIFrameElement | null = null;
 let iframeDoc: Document | null | undefined = null;
 
-
+/**
+ * Get the height of a block node by its ID
+ * @param node - The node representing the block
+ * @returns The height of the block node in pixels
+ */
 export function getBlockHeight(node: Node): number {
   const paragraphDOM = document.querySelector("[data-id='" + node.attrs.id + "']")!;
   
@@ -326,7 +405,11 @@ export function getBlockHeight(node: Node): number {
   return 0;
 }
 
-
+/**
+ * Find text block hack IDs for empty text blocks
+ * @param node - The node to search through
+ * @returns Array of IDs for empty text blocks
+ */
 function findTextblockHacksIds(node: Node): string[] {
   const ids: string[] = [];
   
@@ -339,7 +422,10 @@ function findTextblockHacksIds(node: Node): string[] {
   return ids;
 }
 
-
+/**
+ * Unit conversion utility class for various measurement units
+ * Handles conversion between px, mm, pt, and inches
+ */
 export class UnitConversion {
   private arrDPI: unknown[] = [];
 
@@ -372,7 +458,11 @@ export class UnitConversion {
     this.arrDPI = arr;
   }
 
-
+  /**
+   * Convert pixels to millimeters
+   * @param value - The value in pixels
+   * @returns The value in millimeters
+   */
   pxConversionMm(value: number): number {
     // @ts-ignore
     const inch = value / this.arrDPI[0];
@@ -380,7 +470,11 @@ export class UnitConversion {
     return Number(mmValue.toFixed());
   }
 
-
+  /**
+   * Convert millimeters to pixels
+   * @param value - The value in millimeters
+   * @returns The value in pixels
+   */
   mmConversionPx(value: number): number {
     const inch = value / 25.4;
     // @ts-ignore
@@ -388,23 +482,38 @@ export class UnitConversion {
     return Number(pxValue.toFixed());
   }
 
-
+  /**
+   * Convert points to pixels
+   * @param value - The value in points
+   * @returns The value in pixels
+   */
   ptConversionPx(value: number): number {
     return (value * 96) / 72;
   }
 
-
+  /**
+   * Convert pixels to points
+   * @param value - The value in pixels
+   * @returns The value in points
+   */
   pxConversionPt(value: number): number {
     return (value * 72) / 96;
   }
 }
 
-  
+// Cache for computed dimensions
 const dimensionCache = new Map<string, { height: number; width: number }>();
-
+// Cache for single values like default height
 const valueCache = new Map<string, number>();
 
-
+/**
+ * Computes the height of an HTML element within an iframe document
+ * Sets the inner HTML of a temporary div element with the provided HTML content,
+ * retrieves the height of the specified element by its ID, and then resets the temporary div's content
+ * @param html - The HTML content to be inserted into the temporary div
+ * @param id - The ID of the HTML element whose height is to be computed
+ * @returns The height of the specified HTML element in pixels, or 0 if not found
+ */
 export function computedHeight(html: string, id: string): number {
   const computeddiv = iframeDoc?.getElementById('computeddiv');
   
@@ -426,7 +535,12 @@ export function computedHeight(html: string, id: string): number {
   return 0;
 }
 
-
+/**
+ * Computes the width and height of HTML content
+ * @param html - The HTML content to measure
+ * @param cache - Whether to cache the result
+ * @returns Object containing height and width in pixels
+ */
 export function computedWidth(html: string, cache = true): { height: number; width: number } {
   if (dimensionCache.has(html)) {
     return dimensionCache.get(html) as { height: number; width: number };
@@ -457,7 +571,11 @@ export function computedWidth(html: string, cache = true): { height: number; wid
   return { height: 0, width: 0 };
 }
 
-
+/**
+ * Get content spacing for a DOM element
+ * @param dom - The DOM element to measure
+ * @returns Total spacing in pixels
+ */
 export function getContentSpacing(dom: HTMLElement): number {
   const content = dom.querySelector('.content');
   
@@ -571,7 +689,12 @@ export function getDomHeight(dom: HTMLElement): number {
   return padding + margin + dom.offsetHeight + parseFloat(contentStyle.borderWidth);
 }
 
-
+/**
+ * Get absent HTML height for a node that doesn't exist in the DOM
+ * @param node - The node to get height for
+ * @param schema - The document schema
+ * @returns The DOM element or null if not found
+ */
 export function getAbsentHtmlH(node: Node, schema: Schema): HTMLElement | null {
   if (!node.attrs.id) {
     // @ts-ignore
@@ -596,7 +719,9 @@ export function getAbsentHtmlH(node: Node, schema: Schema): HTMLElement | null {
   return nodeElement as HTMLElement | null;
 }
 
-
+/**
+ * Remove absent HTML height calculations
+ */
 export function removeAbsentHtmlH(): void {
   const computeddiv = iframeDoc?.getElementById('computeddiv');
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -604,7 +729,9 @@ export function removeAbsentHtmlH(): void {
   computeddiv.innerHTML = '';
 }
 
-
+/**
+ * Add paragraph element to iframe document
+ */
 function iframeDocAddP(): void {
   const computedspan = iframeDoc?.getElementById('computedspan');
   
@@ -620,7 +747,10 @@ function iframeDocAddP(): void {
   }
 }
 
-
+/**
+ * Add div element to iframe document for calculations
+ * @param options - Page options for sizing
+ */
 function iframeDocAddDiv(options: PageOptions): void {
   const computeddiv = iframeDoc?.getElementById('computeddiv');
   
@@ -649,7 +779,9 @@ function iframeDocAddDiv(options: PageOptions): void {
   }
 }
 
-
+/**
+ * Remove computed HTML iframe
+ */
 export function removeComputedHtml(): void {
   const iframeComputed1 = document.getElementById('computediframe');
   
@@ -660,7 +792,10 @@ export function removeComputedHtml(): void {
   }
 }
 
-
+/**
+ * Build an auxiliary iframe for calculating HTML and printing HTML
+ * @param options - Page options for iframe setup
+ */
 export function buildComputedHtml(options: PageOptions): void {
   removeComputedHtml();
   
@@ -684,9 +819,12 @@ export function buildComputedHtml(options: PageOptions): void {
   iframeDocAddDiv(options);
 }
 
-
+/**
+ * Copy styles from main document to iframe
+ * @param iframeContentDoc - The iframe document to copy styles to
+ */
 function copyStylesToIframe(iframeContentDoc: Document): void {
-
+  // Copy stylesheets
   const links = document.getElementsByTagName('link');
   for (const link of links) {
     if (link?.rel === 'stylesheet') {
@@ -698,7 +836,7 @@ function copyStylesToIframe(iframeContentDoc: Document): void {
     }
   }
   
-
+  // Copy style tags
   const styles = document.querySelectorAll('style');
   styles.forEach((style) => {
     const newStyle = iframeContentDoc.createElement('style');
@@ -706,13 +844,14 @@ function copyStylesToIframe(iframeContentDoc: Document): void {
     iframeContentDoc.head.appendChild(newStyle);
   });
   
-
+  // Copy elements with inline styles
   const elementsWithInlineStyles = document.querySelectorAll('[style]');
   for (const element of elementsWithInlineStyles) {
     const styleAttr = element.getAttribute('style');
     const clonedElement = iframeContentDoc.createElement(element.tagName);
     clonedElement.setAttribute('style', styleAttr!);
-
+    // This only creates elements with inline styles. Depending on the actual situation, 
+    // you may need to add them to the iframe's DOM tree.
   }
   
   iframeDoc?.body.classList.add('prose', 'prose-base');
