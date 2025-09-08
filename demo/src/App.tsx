@@ -10,7 +10,7 @@ import { OrderedList } from "@tiptap/extension-ordered-list";
 import { ListItem } from "@tiptap/extension-list-item";
 import { HardBreak } from "@tiptap/extension-hard-break";
 import { History } from "@tiptap/extension-history";
-import { PageExtension, UnitConversion, PageDocument } from "@adalat-ai/page-extension";
+import {   PageDocument, PageExtension, UnitConversion } from "@adalat-ai/page-extension";
 
 
 import prettier from "prettier/standalone";
