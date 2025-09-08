@@ -15,14 +15,14 @@ A fully isolated Tiptap extension that provides automatic page management, pagin
 ## 🚀 Installation
 
 ```bash
-npm install @your-username/page-extension
+npm install @adalat-ai/page-extension
 ```
 
 ## 📖 Basic Usage
 
 ```typescript
 import { useEditor } from '@tiptap/react';
-import { PageExtension, PageDocument } from '@your-username/page-extension';
+import { PageExtension, PageDocument } from '@adalat-ai/page-extension';
 
 const editor = useEditor({
   extensions: [
