@@ -6,7 +6,7 @@ module.exports = {
     '<rootDir>/tests/**/*.test.{ts,tsx}',
     '<rootDir>/src/**/*.test.{ts,tsx}'
   ],
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1'
   },
   collectCoverageFrom: [
