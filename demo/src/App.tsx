@@ -10,9 +10,8 @@ import { OrderedList } from "@tiptap/extension-ordered-list";
 import { ListItem } from "@tiptap/extension-list-item";
 import { HardBreak } from "@tiptap/extension-hard-break";
 import { History } from "@tiptap/extension-history";
-import { UnitConversion } from "./extensions/page/core";
-import { Document } from "./extensions/Document";
-import { PageExtension } from "./extensions/page/page-extension";
+import { PageExtension, UnitConversion, PageDocument } from "@adalat-ai/page-extension";
+
 
 import prettier from "prettier/standalone";
 import Prism from "prismjs";
@@ -168,7 +167,7 @@ const MenuBar = ({ editor }: { editor: any | null }) => {
 function App() {
   const editor = useEditor({
     extensions: [
-      Document,
+      PageDocument,
       Paragraph,
       Text,
       Bold,
