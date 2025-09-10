@@ -1,6 +1,6 @@
 {
   "name": "@adalat-ai/page-extension",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A fully isolated Tiptap PageExtension with automatic page management and styling",
   "main": "dist/index.js",
   "module": "dist/index.js",
