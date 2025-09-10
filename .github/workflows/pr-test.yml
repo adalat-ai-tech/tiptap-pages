@@ -49,10 +49,15 @@ jobs:
     - name: Run unit tests
       run: npm test
       
+    - name: Install Playwright browsers
+      run: |
+        cd demo
+        pnpm exec playwright install --with-deps
+        
     - name: Run demo tests
       run: |
         cd demo
-        npm run test:ci
+        pnpm run test:ci
         
     - name: Upload test results
       uses: actions/upload-artifact@v4
