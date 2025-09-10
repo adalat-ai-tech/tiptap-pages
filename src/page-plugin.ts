@@ -30,7 +30,7 @@ class PageDetector {
     if (view.state.doc.eq(prevState.doc)) return;
     const domAtPos = view.domAtPos.bind(view);
     // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+     
     const deleting = window.stepStatus ? window.stepStatus : false;
     const pageNodeType = schema.nodes[PAGE];
     if (!pageNodeType) return;
@@ -86,7 +86,7 @@ export const pagePlugin = (editor: Editor, bodyOption: PageOptions) => {
      */
     appendTransaction(_, prevState, state) {
       removeAbsentHtmlH();
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call
+       
       const page = new PageComputedContext(editor, defaultNodesComputed, this.getState(state), state, prevState);
       const tr = page.run();
       return tr;

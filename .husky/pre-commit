@@ -1,0 +1,18 @@
+echo "🔍 Running pre-commit checks..."
+
+# Lint main package
+echo "📝 Linting main package..."
+npm run lint
+
+# Test main package
+echo "🧪 Testing main package..."
+npm test
+
+# Lint and test demo package
+echo "📝 Linting demo package..."
+(cd demo && pnpm run lint)
+
+echo "🧪 Testing demo package..."
+(cd demo && pnpm run test)
+
+echo "✅ All pre-commit checks passed!"
