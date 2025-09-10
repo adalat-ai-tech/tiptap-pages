@@ -2,7 +2,7 @@ name: PR Tests
 
 on:
   pull_request:
-    branches: [ main, nishant/page-extension-setup ]
+    branches: [ main, nishant/ci-cd-pipeline ]
     paths:
       - 'src/**'
       - 'tests/**'

@@ -2,7 +2,7 @@ name: Deploy to NPM
 
 on:
   push:
-    branches: [ main, nishant/page-extension-setup ]
+    branches: [ main, nishant/ci-cd-pipeline ]
     paths:
       - 'src/**'
       - 'package.json'
