@@ -47,8 +47,8 @@ const editor = useEditor({
     PageDocument, // Required: Enforces PAGE node structure
     PageExtension.configure({
       // Required: Page dimensions
-      bodyHeight: 1056, // A4 height at 96 DPI
-      bodyWidth: 816,   // A4 width at 96 DPI
+      bodyHeight: 1123, // A4 height at 96 DPI (29.7cm = 11.69in × 96 DPI)
+      bodyWidth: 794,   // A4 width at 96 DPI (21.0cm = 8.27in × 96 DPI)
       
       // Optional: Page layout settings
       pageLayout: {
@@ -300,8 +300,8 @@ You can override default styles by targeting the generated CSS classes:
 
 ```typescript
 PageExtension.configure({
-  bodyHeight: 1056,
-  bodyWidth: 816,
+  bodyHeight: 1123,
+  bodyWidth: 794,
   pageLayout: {
     margins: {
       top: { unit: 'INCHES', value: 1.0 },
@@ -321,8 +321,8 @@ PageExtension.configure({
 
 ```typescript
 PageExtension.configure({
-  bodyHeight: 1056,
-  bodyWidth: 816,
+  bodyHeight: 1123,
+  bodyWidth: 794,
   pageNumber: {
     show: true,
     showCount: true,
@@ -360,8 +360,8 @@ editor.commands.recomputeComputedHtml();
 
 ```typescript
 PageExtension.configure({
-  bodyHeight: 1056,
-  bodyWidth: 816,
+  bodyHeight: 1123,
+  bodyWidth: 794,
   types: ['customBlock', 'customNode'] // Add your custom node types
 })
 ```
@@ -491,8 +491,8 @@ MIT License - see LICENSE file for details.
 ```typescript
 // Ensure you provide valid numeric values
 PageExtension.configure({
-  bodyHeight: 1056, // Must be a positive number
-  bodyWidth: 816,   // Must be a positive number
+  bodyHeight: 1123, // Must be a positive number (A4 height at 96 DPI)
+  bodyWidth: 794,   // Must be a positive number (A4 width at 96 DPI)
 })
 ```
 
