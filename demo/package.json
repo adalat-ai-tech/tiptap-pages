@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "pnpm exec playwright test --timeout=60000",
+    "test:ci": "pnpm exec playwright test --timeout=60000 --reporter=github",
     "show-report": "pnpm exec playwright show-report",
     "codegen": "pnpm exec playwright codegen"
   },
