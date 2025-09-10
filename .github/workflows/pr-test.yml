@@ -54,6 +54,17 @@ jobs:
         cd demo
         pnpm exec playwright install --with-deps
         
+    - name: Build demo application
+      run: |
+        cd demo
+        pnpm run build
+        
+    - name: Start demo server
+      run: |
+        cd demo
+        pnpm run preview &
+        sleep 10
+        
     - name: Run demo tests
       run: |
         cd demo
