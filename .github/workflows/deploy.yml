@@ -2,7 +2,7 @@ name: Deploy to NPM
 
 on:
   push:
-    branches: [ main, nishant/ci-cd-pipeline ]
+    branches: [ main, nishant/ci-cd-pipeline, nishant/page-extension-setup ]
     paths:
       - 'src/**'
       - 'package.json'
@@ -28,7 +28,7 @@ jobs:
   deploy:
     name: Deploy to NPM
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/prod' || github.ref == 'refs/heads/production' || github.ref == 'refs/heads/nishant/ci-cd-pipeline'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/prod' || github.ref == 'refs/heads/production' || github.ref == 'refs/heads/nishant/ci-cd-pipeline' || github.ref == 'refs/heads/nishant/page-extension-setup'
     
     steps:
     - name: Checkout code
