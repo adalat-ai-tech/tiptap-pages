@@ -9,6 +9,8 @@ on:
       - 'tsconfig.json'
       - 'README.md'
       - 'LICENSE'
+      - '.github/workflows/**'
+      - 'eslint.config.js'
   workflow_dispatch:
     inputs:
       version_type:
