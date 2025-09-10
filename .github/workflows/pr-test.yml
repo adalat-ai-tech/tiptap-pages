@@ -38,7 +38,7 @@ jobs:
     - name: Install demo dependencies
       run: |
         cd demo
-        npm ci
+        npm install
         
     - name: Build package
       run: npm run build
@@ -110,7 +110,7 @@ jobs:
     - name: Install demo dependencies
       run: |
         cd demo
-        npm ci
+        npm install
         
     - name: Run demo security audit
       run: |
