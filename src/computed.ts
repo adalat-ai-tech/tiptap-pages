@@ -389,10 +389,10 @@ export class PageComputedContext {
     const { selection } = this.state;
     
     // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+     
     const startNumber = tr.doc.content.findIndex(selection.from).index + 1;
     // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+     
     const curNumber = tr.doc.content.findIndex(selection.head).index + 1;
 
     if (tr.doc.childCount > 1 && (tr.doc.content.childCount !== curNumber || curNumber !== startNumber)) {
@@ -418,7 +418,7 @@ export class PageComputedContext {
   splitDocument(): void {
     const { schema } = this.state;
     
-    // eslint-disable-next-line no-constant-condition
+     
     for (;;) {
       // Get the height of the last page, if the return value exists, it means it needs to be split
       const splitInfo: SplitInfo | null = this.getNodeHeight();
@@ -475,7 +475,7 @@ export class PageComputedContext {
     const { selection } = this.state;
     
     // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unnecessary-type-assertion
+     
     const count = (tr.doc.content.findIndex(selection.head).index + 1) as number;
     
     // Merge all pages into one page
@@ -585,7 +585,7 @@ export class PageComputedContext {
           ? typeAfter.type.create(
               {
                 id: getId(),
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                 
                 pageNumber: na?.attrs.pageNumber + 1,
               },
               after
@@ -612,7 +612,7 @@ export class PageComputedContext {
         if (beforeBlock === null) {
           beforeBlock = node;
         } else {
-          // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+           
           const mappedPos = tr.mapping.map(pos);
           if (beforeBlock.type !== schema.nodes[PARAGRAPH]) {
             tr = tr.step(new ReplaceStep(mappedPos - 1, mappedPos + 1, Slice.empty));

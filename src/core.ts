@@ -69,7 +69,7 @@ export function getHTMLFromFragment(
 
 
 export function getFlag(cnode: Node, schema: Schema): boolean | null {
-  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+   
   const paragraphDOM = document.querySelector("[data-id='" + cnode.attrs.id + "']") || 
     iframeDoc?.querySelector("[data-id='" + cnode.attrs.id + "']");
     
@@ -210,7 +210,7 @@ function calculateNodeOverflowHeightAndPoint(node: Node, dom: HTMLElement, split
     }
     
     if (i === point.i) {
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+       
       index = pos + (point.calculateLength !== undefined ? point.calculateLength : 0) + 1;
       isFlag = false;
     }
@@ -277,7 +277,7 @@ function binarySearchTextBreak(
 
 
 export function getBreakPos(cnode: Node, dom: HTMLElement, splitContext: SplitContext): number | null {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+   
   // @ts-ignore
   const paragraphDOM = dom;
   
@@ -348,13 +348,13 @@ export class UnitConversion {
     
     if (typeof window === 'undefined') return;
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+     
     // @ts-ignore
     if (window.screen.deviceXDPI) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+       
       // @ts-ignore
       arr.push(window.screen.deviceXDPI);
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+       
       // @ts-ignore
       arr.push(window.screen.deviceYDPI);
     } else {
@@ -408,7 +408,7 @@ const valueCache = new Map<string, number>();
 export function computedHeight(html: string, id: string): number {
   const computeddiv = iframeDoc?.getElementById('computeddiv');
   
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+   
   // @ts-ignore
   if (computeddiv) {
     computeddiv.innerHTML = html;
@@ -462,7 +462,7 @@ export function getContentSpacing(dom: HTMLElement): number {
   const content = dom.querySelector('.content');
   
   if (dom && content) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+     
     // @ts-ignore
     const contentStyle = window.getComputedStyle(content);
     const paddingTop = contentStyle.getPropertyValue('padding-top');
@@ -473,7 +473,7 @@ export function getContentSpacing(dom: HTMLElement): number {
     const padding = parseFloat(paddingTop) + parseFloat(paddingBottom);
     const margin = parseFloat(marginTop) + parseFloat(marginBottom);
     
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+     
     // @ts-ignore
     return padding + margin + (dom.offsetHeight - content.offsetHeight);
   }
@@ -487,7 +487,7 @@ export function getContentSpacing(dom: HTMLElement): number {
  * @returns Total spacing in pixels
  */
 export function getSpacing(dom: HTMLElement): number {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+   
   // @ts-ignore
   const contentStyle = window.getComputedStyle(dom);
   const paddingTop = contentStyle.getPropertyValue('padding-top');
@@ -511,7 +511,7 @@ export function getDefault(): number {
   }
   
   const computedspan = iframeDoc?.getElementById('computedspan');
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+   
   // @ts-ignore
   const defaultHeight = getDomHeight(computedspan);
   
@@ -599,7 +599,7 @@ export function getAbsentHtmlH(node: Node, schema: Schema): HTMLElement | null {
 
 export function removeAbsentHtmlH(): void {
   const computeddiv = iframeDoc?.getElementById('computeddiv');
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+   
   // @ts-ignore
   computeddiv.innerHTML = '';
 }
@@ -668,7 +668,7 @@ export function buildComputedHtml(options: PageOptions): void {
   document.body.appendChild(iframeComputed);
   
   // Get the document object
-  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+   
   iframeDoc = iframeComputed?.contentDocument || iframeComputed?.contentWindow?.document;
   
   iframeComputed?.setAttribute('id', 'computediframe');
