@@ -1,0 +1,11 @@
+echo "🏗️ Running pre-push checks..."
+
+# Build main package
+echo "📦 Building main package..."
+npm run build
+
+# Build demo package
+echo "📦 Building demo package..."
+(cd demo && pnpm run build)
+
+echo "✅ All pre-push checks passed!"

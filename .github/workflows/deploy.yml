@@ -1,0 +1,174 @@
+name: Deploy to NPM
+
+on:
+  push:
+    branches: [ main, nishant/ci-cd-pipeline, nishant/page-extension-setup ]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'tsconfig.json'
+      - 'README.md'
+      - 'LICENSE'
+      - '.github/workflows/**'
+      - 'eslint.config.js'
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
+        - prerelease
+
+jobs:
+  deploy:
+    name: Deploy to NPM
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/prod' || github.ref == 'refs/heads/production' || github.ref == 'refs/heads/nishant/ci-cd-pipeline' || github.ref == 'refs/heads/nishant/page-extension-setup'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        registry-url: 'https://registry.npmjs.org'
+        
+    - name: Install pnpm
+      run: npm install -g pnpm
+      
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run tests
+      run: npm test
+      
+    - name: Build package
+      run: npm run build
+      
+    - name: Verify build
+      run: |
+        if [ ! -d "dist" ]; then
+          echo "Build failed: dist directory not found"
+          exit 1
+        fi
+        echo "Build verification successful"
+        
+    - name: Check if version should be bumped
+      id: version-check
+      run: |
+        CURRENT_VERSION=$(npm pkg get version | tr -d '"')
+        echo "Current version: $CURRENT_VERSION"
+        
+        # Check if this is a manual dispatch with version bump
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "Manual deployment with version bump: ${{ github.event.inputs.version_type }}"
+          echo "should_bump=true" >> $GITHUB_OUTPUT
+          echo "bump_type=${{ github.event.inputs.version_type }}" >> $GITHUB_OUTPUT
+        else
+          # Check if package.json was modified in the last commit
+          if git diff --name-only HEAD~1 HEAD | grep -q "package.json"; then
+            echo "package.json was modified, checking for version changes"
+            PREV_VERSION=$(git show HEAD~1:package.json | grep '"version"' | cut -d'"' -f4)
+            if [ "$CURRENT_VERSION" != "$PREV_VERSION" ]; then
+              echo "Version was already bumped to $CURRENT_VERSION"
+              echo "should_bump=false" >> $GITHUB_OUTPUT
+            else
+              echo "Version not bumped, will bump patch version"
+              echo "should_bump=true" >> $GITHUB_OUTPUT
+              echo "bump_type=patch" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "No version bump needed"
+            echo "should_bump=false" >> $GITHUB_OUTPUT
+          fi
+        fi
+        
+    - name: Bump version
+      if: steps.version-check.outputs.should_bump == 'true'
+      run: |
+        npm version ${{ steps.version-check.outputs.bump_type }} --no-git-tag-version
+        NEW_VERSION=$(npm pkg get version | tr -d '"')
+        echo "New version: $NEW_VERSION"
+        echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+        
+    - name: Create release notes
+      id: release-notes
+      run: |
+        if [ "${{ steps.version-check.outputs.should_bump }}" = "true" ]; then
+          VERSION=${{ env.NEW_VERSION }}
+        else
+          VERSION=$(npm pkg get version | tr -d '"')
+        fi
+        
+        echo "## What's Changed" > release_notes.md
+        echo "" >> release_notes.md
+        
+        # Get commits since last tag
+        LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        if [ -n "$LAST_TAG" ]; then
+          echo "### Commits since $LAST_TAG:" >> release_notes.md
+          git log --pretty=format:"- %s (%h)" $LAST_TAG..HEAD >> release_notes.md
+        else
+          echo "### Recent commits:" >> release_notes.md
+          git log --pretty=format:"- %s (%h)" -10 >> release_notes.md
+        fi
+        
+        echo "" >> release_notes.md
+        echo "### Package Details" >> release_notes.md
+        echo "- **Version**: $VERSION" >> release_notes.md
+        echo "- **Package Size**: $(du -sh dist | cut -f1)" >> release_notes.md
+        echo "- **Files**: $(find dist -type f | wc -l)" >> release_notes.md
+        
+    - name: Publish to NPM
+      run: npm publish --access public
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        
+    - name: Create Git Tag
+      if: steps.version-check.outputs.should_bump == 'true'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add package.json
+        git commit -m "chore: bump version to ${{ env.NEW_VERSION }}"
+        git tag -a "v${{ env.NEW_VERSION }}" -m "Release v${{ env.NEW_VERSION }}"
+        git push origin HEAD:main
+        git push origin "v${{ env.NEW_VERSION }}"
+        
+    - name: Create GitHub Release
+      if: steps.version-check.outputs.should_bump == 'true'
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ env.NEW_VERSION }}
+        release_name: Release v${{ env.NEW_VERSION }}
+        body_path: release_notes.md
+        draft: false
+        prerelease: false
+        
+    - name: Notify deployment success
+      if: success()
+      run: |
+        echo "✅ Successfully deployed @adalat-ai/page-extension to NPM"
+        echo "📦 Package: https://www.npmjs.com/package/@adalat-ai/page-extension"
+        if [ "${{ steps.version-check.outputs.should_bump }}" = "true" ]; then
+          echo "🏷️  New version: ${{ env.NEW_VERSION }}"
+        fi
+        
+    - name: Notify deployment failure
+      if: failure()
+      run: |
+        echo "❌ Deployment failed"
+        echo "Please check the logs and try again"
