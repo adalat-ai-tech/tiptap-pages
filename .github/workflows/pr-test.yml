@@ -20,7 +20,7 @@ jobs:
     
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [20.x]
     
     steps:
     - name: Checkout code
@@ -53,17 +53,6 @@ jobs:
       run: |
         cd demo
         pnpm exec playwright install --with-deps
-        
-    - name: Build demo application
-      run: |
-        cd demo
-        pnpm run build
-        
-    - name: Start demo server
-      run: |
-        cd demo
-        pnpm run preview &
-        sleep 10
         
     - name: Run demo tests
       run: |
