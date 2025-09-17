@@ -1,0 +1,111 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
+        - prerelease
+      create_tag:
+        description: 'Create and push tag'
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run tests
+      run: npm test
+      
+    - name: Build package
+      run: npm run build
+      
+    - name: Bump version
+      run: |
+        npm version ${{ github.event.inputs.version_type }} --no-git-tag-version
+        NEW_VERSION=$(npm pkg get version | tr -d '"')
+        echo "New version: $NEW_VERSION"
+        echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+        
+    - name: Create and push tag
+      if: github.event.inputs.create_tag == 'true'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add package.json
+        git commit -m "chore: bump version to ${{ env.NEW_VERSION }}"
+        git tag -a "v${{ env.NEW_VERSION }}" -m "Release v${{ env.NEW_VERSION }}"
+        git push origin HEAD:main
+        git push origin "v${{ env.NEW_VERSION }}"
+        
+    - name: Create release notes
+      run: |
+        VERSION=${{ env.NEW_VERSION }}
+        
+        echo "## What's Changed" > release_notes.md
+        echo "" >> release_notes.md
+        
+        # Get commits since last tag
+        LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        if [ -n "$LAST_TAG" ]; then
+          echo "### Commits since $LAST_TAG:" >> release_notes.md
+          git log --pretty=format:"- %s (%h)" $LAST_TAG..HEAD >> release_notes.md
+        else
+          echo "### Recent commits:" >> release_notes.md
+          git log --pretty=format:"- %s (%h)" -10 >> release_notes.md
+        fi
+        
+        echo "" >> release_notes.md
+        echo "### Package Details" >> release_notes.md
+        echo "- **Version**: $VERSION" >> release_notes.md
+        echo "- **Package Size**: $(du -sh dist | cut -f1)" >> release_notes.md
+        echo "- **Files**: $(find dist -type f | wc -l)" >> release_notes.md
+        
+    - name: Create GitHub Release
+      if: github.event.inputs.create_tag == 'true'
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ env.NEW_VERSION }}
+        release_name: Release v${{ env.NEW_VERSION }}
+        body_path: release_notes.md
+        draft: false
+        prerelease: false
+        
+    - name: Notify success
+      if: success()
+      run: |
+        echo "✅ Successfully created release v${{ env.NEW_VERSION }}"
+        if [ "${{ github.event.inputs.create_tag }}" = "true" ]; then
+          echo "🏷️  Tag created and pushed: v${{ env.NEW_VERSION }}"
+          echo "🚀 Deploy workflow will be triggered automatically"
+        else
+          echo "📝 Version bumped to ${{ env.NEW_VERSION }} (no tag created)"
+        fi
