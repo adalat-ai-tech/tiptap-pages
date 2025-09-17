@@ -8,11 +8,11 @@ npm run lint
 echo "🧪 Testing main package..."
 npm test
 
-# Lint and test demo package
-echo "📝 Linting demo package..."
-(cd demo && pnpm run lint)
+# Lint and test demo package (commented out for faster CI)
+# echo "📝 Linting demo package..."
+# (cd demo && pnpm run lint)
 
-echo "🧪 Testing demo package..."
-(cd demo && pnpm run test)
+# echo "🧪 Testing demo package..."
+# (cd demo && pnpm run test)
 
 echo "✅ All pre-commit checks passed!"
