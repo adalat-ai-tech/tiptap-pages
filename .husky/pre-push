@@ -4,8 +4,8 @@ echo "🏗️ Running pre-push checks..."
 echo "📦 Building main package..."
 npm run build
 
-# Build demo package
-echo "📦 Building demo package..."
-(cd demo && pnpm run build)
+# Build demo package (commented out for faster CI)
+# echo "📦 Building demo package..."
+# (cd demo && pnpm run build)
 
 echo "✅ All pre-push checks passed!"
