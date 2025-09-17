@@ -2,15 +2,9 @@ name: Deploy to NPM
 
 on:
   push:
-    branches: [ main, nishant/ci-cd-pipeline, nishant/page-extension-setup ]
-    paths:
-      - 'src/**'
-      - 'package.json'
-      - 'tsconfig.json'
-      - 'README.md'
-      - 'LICENSE'
-      - '.github/workflows/**'
-      - 'eslint.config.js'
+    tags:
+      - 'v*'
+    branches: [ main ]
   workflow_dispatch:
     inputs:
       version_type:
@@ -28,7 +22,7 @@ jobs:
   deploy:
     name: Deploy to NPM
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/prod' || github.ref == 'refs/heads/production' || github.ref == 'refs/heads/nishant/ci-cd-pipeline' || github.ref == 'refs/heads/nishant/page-extension-setup'
+    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     
     steps:
     - name: Checkout code
@@ -64,52 +58,49 @@ jobs:
         fi
         echo "Build verification successful"
         
-    - name: Check if version should be bumped
-      id: version-check
+    - name: Determine version strategy
+      id: version-strategy
       run: |
         CURRENT_VERSION=$(npm pkg get version | tr -d '"')
         echo "Current version: $CURRENT_VERSION"
         
-        # Check if this is a manual dispatch with version bump
         if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          # Manual deployment - bump version
           echo "Manual deployment with version bump: ${{ github.event.inputs.version_type }}"
           echo "should_bump=true" >> $GITHUB_OUTPUT
           echo "bump_type=${{ github.event.inputs.version_type }}" >> $GITHUB_OUTPUT
+        elif startsWith(github.ref, 'refs/tags/v'); then
+          # Tag-based deployment - extract version from tag
+          TAG_VERSION=${GITHUB_REF#refs/tags/v}
+          echo "Tag-based deployment: $TAG_VERSION"
+          echo "should_bump=false" >> $GITHUB_OUTPUT
+          echo "tag_version=$TAG_VERSION" >> $GITHUB_OUTPUT
         else
-          # Check if package.json was modified in the last commit
-          if git diff --name-only HEAD~1 HEAD | grep -q "package.json"; then
-            echo "package.json was modified, checking for version changes"
-            PREV_VERSION=$(git show HEAD~1:package.json | grep '"version"' | cut -d'"' -f4)
-            if [ "$CURRENT_VERSION" != "$PREV_VERSION" ]; then
-              echo "Version was already bumped to $CURRENT_VERSION"
-              echo "should_bump=false" >> $GITHUB_OUTPUT
-            else
-              echo "Version not bumped, will bump patch version"
-              echo "should_bump=true" >> $GITHUB_OUTPUT
-              echo "bump_type=patch" >> $GITHUB_OUTPUT
-            fi
-          else
-            echo "No version bump needed"
-            echo "should_bump=false" >> $GITHUB_OUTPUT
-          fi
+          # Main branch deployment - auto bump patch
+          echo "Main branch deployment - auto bump patch"
+          echo "should_bump=true" >> $GITHUB_OUTPUT
+          echo "bump_type=patch" >> $GITHUB_OUTPUT
         fi
         
     - name: Bump version
-      if: steps.version-check.outputs.should_bump == 'true'
+      if: steps.version-strategy.outputs.should_bump == 'true'
       run: |
-        npm version ${{ steps.version-check.outputs.bump_type }} --no-git-tag-version
+        npm version ${{ steps.version-strategy.outputs.bump_type }} --no-git-tag-version
         NEW_VERSION=$(npm pkg get version | tr -d '"')
         echo "New version: $NEW_VERSION"
         echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
         
+    - name: Set version for tag-based deployment
+      if: steps.version-strategy.outputs.should_bump == 'false' && steps.version-strategy.outputs.tag_version
+      run: |
+        # Update package.json with tag version
+        npm pkg set version="${{ steps.version-strategy.outputs.tag_version }}"
+        echo "NEW_VERSION=${{ steps.version-strategy.outputs.tag_version }}" >> $GITHUB_ENV
+        
     - name: Create release notes
       id: release-notes
       run: |
-        if [ "${{ steps.version-check.outputs.should_bump }}" = "true" ]; then
-          VERSION=${{ env.NEW_VERSION }}
-        else
-          VERSION=$(npm pkg get version | tr -d '"')
-        fi
+        VERSION=${{ env.NEW_VERSION }}
         
         echo "## What's Changed" > release_notes.md
         echo "" >> release_notes.md
@@ -135,8 +126,8 @@ jobs:
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         
-    - name: Create Git Tag
-      if: steps.version-check.outputs.should_bump == 'true'
+    - name: Create Git Tag (for manual/main deployments)
+      if: steps.version-strategy.outputs.should_bump == 'true'
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
@@ -147,7 +138,7 @@ jobs:
         git push origin "v${{ env.NEW_VERSION }}"
         
     - name: Create GitHub Release
-      if: steps.version-check.outputs.should_bump == 'true'
+      if: steps.version-strategy.outputs.should_bump == 'true' || startsWith(github.ref, 'refs/tags/v')
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -163,9 +154,7 @@ jobs:
       run: |
         echo "✅ Successfully deployed @adalat-ai/page-extension to NPM"
         echo "📦 Package: https://www.npmjs.com/package/@adalat-ai/page-extension"
-        if [ "${{ steps.version-check.outputs.should_bump }}" = "true" ]; then
-          echo "🏷️  New version: ${{ env.NEW_VERSION }}"
-        fi
+        echo "🏷️  Version: ${{ env.NEW_VERSION }}"
         
     - name: Notify deployment failure
       if: failure()

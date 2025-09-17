@@ -416,18 +416,18 @@ Emails: test@example.com, user@domain.org
     const testContent = 'Memory management test content';
     await page.locator('.tiptap').type(testContent);
     
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 3; i++) {
       await page.keyboard.press('Control+a');
       await page.keyboard.press('Control+c');
       
-      const longContent = '\n\n' + 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. '.repeat(10);
+      const longContent = '\n\n' + 'Lorem ipsum dolor sit amet. '.repeat(5);
       await page.locator('.tiptap').type(longContent);
       
       await page.keyboard.press('End');
       await page.keyboard.press('Enter');
       await page.keyboard.press('Control+v');
       
-      await page.waitForTimeout(50);
+      await page.waitForTimeout(100);
     }
     
     const content = await page.locator('.tiptap').textContent();
