@@ -69,7 +69,7 @@ jobs:
           echo "Manual deployment with version bump: ${{ github.event.inputs.version_type }}"
           echo "should_bump=true" >> $GITHUB_OUTPUT
           echo "bump_type=${{ github.event.inputs.version_type }}" >> $GITHUB_OUTPUT
-        elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+        elif startsWith(github.ref, 'refs/tags/v'); then
           # Tag-based deployment - extract version from tag
           TAG_VERSION=${GITHUB_REF#refs/tags/v}
           echo "Tag-based deployment: $TAG_VERSION"
