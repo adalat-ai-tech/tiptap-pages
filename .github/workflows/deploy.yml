@@ -88,6 +88,16 @@ jobs:
         npm version ${{ steps.version-strategy.outputs.bump_type }} --no-git-tag-version
         NEW_VERSION=$(npm pkg get version | tr -d '"')
         echo "New version: $NEW_VERSION"
+        
+        # Check if version already exists on NPM
+        if npm view @adalat-ai/page-extension@$NEW_VERSION version >/dev/null 2>&1; then
+          echo "❌ Version $NEW_VERSION already exists on NPM"
+          echo "Bumping to next patch version..."
+          npm version patch --no-git-tag-version
+          NEW_VERSION=$(npm pkg get version | tr -d '"')
+          echo "Updated version: $NEW_VERSION"
+        fi
+        
         echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
         
     - name: Set version for tag-based deployment
