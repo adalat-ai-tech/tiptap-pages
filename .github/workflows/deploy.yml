@@ -149,7 +149,7 @@ jobs:
         git add package.json
         git commit -m "chore: bump version to ${{ env.NEW_VERSION }}"
         git tag -a "v${{ env.NEW_VERSION }}" -m "Release v${{ env.NEW_VERSION }}"
-        git push origin HEAD:main
+        # Only push the tag, not the main branch (branch protection rules)
         git push origin "v${{ env.NEW_VERSION }}"
         
     - name: Create GitHub Release
