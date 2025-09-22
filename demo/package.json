@@ -46,7 +46,7 @@
     "zeed-dom": "^0.17.7"
   },
   "devDependencies": {
-    "@eslint/js": "^9.33.0",
+    "@eslint/js": "^9.36.0",
     "@playwright/test": "^1.55.0",
     "@types/node": "^24.3.1",
     "@types/prismjs": "^1.26.5",
