@@ -47,27 +47,23 @@
     "@tiptap/core": "^2.0.0",
     "@tiptap/pm": "^2.0.0",
     "@tiptap/react": "^2.0.0",
-    "react": "^18.0.0 || ^19.0.0"
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
     "@testing-library/jest-dom": "^6.0.0",
     "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.0.0",
-    "@tiptap/core": "^2.0.0",
     "@tiptap/extension-collaboration": "^2.0.0",
-    "@tiptap/extension-unique-id": "^2.0.0",
-    "@tiptap/pm": "^2.0.0",
-    "@tiptap/react": "^2.0.0",
     "@types/jest": "^29.0.0",
-    "@types/react": "^18.0.0",
+    "@types/react": "^18.0.0 || ^19.0.0",
+    "@types/react-dom": "^18.0.0 || ^19.0.0",
     "@types/uuid": "^9.0.0",
     "eslint": "^9.0.0",
     "husky": "^9.1.7",
     "jest": "^29.0.0",
     "jest-environment-jsdom": "^29.0.0",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
     "ts-jest": "^29.4.1",
     "typescript": "^5.0.0",
     "typescript-eslint": "^8.0.0"
@@ -75,6 +71,7 @@
   "dependencies": {
     "mitt": "^3.0.0",
     "uuid": "^9.0.0",
-    "zeed-dom": "^0.9.0"
+    "zeed-dom": "^0.9.0",
+    "@tiptap/extension-unique-id": ">=2.0.0"
   }
 }
