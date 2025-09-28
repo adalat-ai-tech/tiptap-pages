@@ -71,7 +71,7 @@
   "dependencies": {
     "mitt": "^3.0.0",
     "uuid": "^9.0.0",
-    "zeed-dom": "^0.9.0",
+    "zeed-dom": "^0.17.7",
     "@tiptap/extension-unique-id": ">=2.0.0"
   }
 }
